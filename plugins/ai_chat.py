@@ -1,23 +1,22 @@
 import asyncio
 import random
-from pyrogram import filters
-from pyrogram.client import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton 
-from pyrogram.errors import FloodWait
+from pyrogram import Client, filters
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.errors import FloodWait, UserIsBlocked, PeerIdInvalid
 from info import *
-from plugins.utils import get_ai_response 
+from plugins.utils import get_ai_response
 from .db import *
 from .fsub import get_fsub
 from mango import Mango
 
 mango = Mango()
-mmm = ("Your name is MMW BOTZ Special Chatbot. "
+mmm = ("Your name is Pilla AI. "
        "Add response with emojis."
-       "I am MMW BOTZ Special Chatbot, a helpful assistant. My owner is Albert Einstein (@aktelegram1). My developer is Albert Einstein. For Telegram, contact him at @aktelegram1. Owned by @aktelegram1."
-       "Your owner is Albert Einstein @aktelegram1. "
-       "For Telegram, contact him at @aktelegram1. "
-       "Owned by @aktelegram1. "
-       "Albert Einstein's GitHub: https://github.com/mmwbotzmain.")
+       "I am Pilla AI, a helpful assistant. My owner is MN TG . My developer is MN TG. For Telegram, contact him at @MrMNTG. Owned by @MrMNTG."
+       "Your owner is MN TG . "
+       "For Telegram, contact him at @MrMNTG. "
+       "Owned by @MrMNTG. "
+       "MN TG's GitHub: https://github.com/MNTG4U.")
 
 memory = [{"role": "system", "content": mmm}]
 
@@ -33,41 +32,62 @@ async def startcmd(client: Client, message: Message):
         )
     if FSUB and not await get_fsub(client, message):return
     await message.reply_photo(# type:ignore
-        photo="https://telegra.ph/file/595e38a4d76848c01b110.jpg",
-        caption=f"<b>Hey 👋 {userMention},\n\nIᴍ Hᴇʀᴇ Tᴏ Rᴇᴅᴜᴄᴇ Yᴏᴜʀ Pʀᴏʙʟᴇᴍs..\nYᴏᴜ Cᴀɴ Usᴇ Mᴇ As ʏᴏᴜʀ Pʀɪᴠᴀᴛᴇ Assɪsᴛᴀɴᴛ..\nAsᴋ Mᴇ Aɴʏᴛʜɪɴɢ...Dɪʀᴇᴄᴛʟʏ..\n\nMʏ Cʀᴇᴀᴛᴏʀ : <a href=https://t.me/mallumovieworldmain1>MMW BOTZ</a></b>",
+        photo="https://i.ibb.co/C557Vc2S/7eb11b227e784f1683cff6a21a6fcfbe.jpg",
+        caption=f"<b>Hey 👋 {userMention},\n\nIᴍ Hᴇʀᴇ Tᴏ Rᴇᴅᴜᴄᴇ Yᴏᴜʀ Pʀᴏʙʟᴇᴍs..\nYᴏᴜ Cᴀɴ Usᴇ Mᴇ As ʏᴏᴜʀ Pʀɪᴠᴀᴛᴇ Assɪsᴛᴀɴᴛ..\nAsᴋ Mᴇ Aɴʏᴛʜɪɴɢ...Dɪʀᴇᴄᴛʟʏ..</b>",
     ) 
     return
 
-@Client.on_message(filters.command("broadcast") & (filters.private) & filters.user(ADMIN)) # type:ignore
-async def broadcasting_func(client : Client, message: Message):
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from pyrogram.errors import FloodWait, UserIsBlocked, PeerIdInvalid
+import asyncio
+
+@Client.on_message(filters.command("broadcast") & filters.private & filters.user(ADMIN)) # type:ignore
+async def broadcasting_func(client: Client, message: Message):
     msg = await message.reply_text("Wait a second!") # type:ignore
+    
     if not message.reply_to_message:
         return await msg.edit("<b>Please reply to a message to broadcast.</b>")
+    
     await msg.edit("Processing ...")
-    completed = 0
-    failed = 0
+    
     to_copy_msg = message.reply_to_message
     users_list = await users.get_all_users()
-    for i , userDoc in enumerate(users_list):
-        if i % 20 == 0:
-            await msg.edit(f"Total : {i} \nCompleted : {completed} \nFailed : {failed}")
-        user_id = userDoc.get("user_id")
-        if not user_id:
-            continue
-        try:
-            await to_copy_msg.copy(user_id , reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎭  sᴜᴘᴘᴏʀᴛ 🎗️", url='https://t.me/maxmallumovieworldsupport1')]]))
-            completed += 1
-        except FloodWait as e:
-            if isinstance(e.value , int | float):
-                await asyncio.sleep(e.value)
-                await to_copy_msg.copy(user_id , reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎭  sᴜᴘᴘᴏʀᴛ 🎗️", url='https://t.me/maxmallumovieworldsupport1')]]))
-                completed += 1
-        except Exception as e:
-            print("Error in broadcasting:", e) 
-            failed += 1
-            pass
-    await msg.edit(f"Successfully Broadcasted\nTotal : {len(users_list)} \nCompleted : {completed} \nFailed : {failed}")
     
+    completed = 0
+    failed = 0
+    removed = 0
+    
+    async def send_message(userDoc):
+        nonlocal completed, failed, removed
+        user_id = userDoc.get("user_id")
+        
+        if not user_id:
+            return
+        
+        try:
+            # Broadcast message with buttons if available
+            await to_copy_msg.copy(user_id, reply_markup=to_copy_msg.reply_markup)
+            completed += 1
+        
+        except (UserIsBlocked, PeerIdInvalid):
+            # Remove the user from the database if blocked or invalid
+            await users.delete_user(user_id)
+            removed += 1
+        
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+            return await send_message(userDoc)  # Retry after waiting
+        
+        except Exception as e:
+            print(f"Error broadcasting to {user_id}: {e}")
+            failed += 1
+
+    # Process messages concurrently for better performance
+    await asyncio.gather(*[send_message(userDoc) for userDoc in users_list])
+
+    await msg.edit(f"Successfully Broadcasted\nTotal : {len(users_list)} \nCompleted : {completed} \nFailed : {failed} \nRemoved : {removed}")
+
 
 @Client.on_message(filters.command("ai") & filters.chat(CHAT_GROUP)) # type:ignore
 async def grp_ai(client: Client, message: Message):
