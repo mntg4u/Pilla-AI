@@ -16,16 +16,16 @@ API_ID = int(environ.get("API_ID", 0))
 API_HASH = environ.get("API_HASH", "")
 BOT_TOKEN = environ.get("BOT_TOKEN", "")
 
-ADMIN = [int(admin) for admin in environ.get('ADMIN', '').split()]
+ADMIN = [int(admin) for admin in environ.get('ADMIN', '1892771262').split()]
 CHAT_GROUP = int(environ.get("CHAT_GROUP", 0))
-LOG_CHANNEL = int(environ.get("LOG_CHANNEL", 0))
+LOG_CHANNEL = environ.get("LOG_CHANNEL", "-1002292607317")
 MONGO_URL = environ.get("MONGO_URL", "")
-AUTH_CHANNEL = environ.get("AUTH_CHANNEL", "")
+AUTH_CHANNEL = environ.get("AUTH_CHANNEL", "-1002116310726")
 FSUB = environ.get("FSUB", "True").lower() == "true"
 STICKERS_IDS = ["CAACAgQAAxkBAAEK99dlfC7LDqnuwtGRkIoacot_dGC4zQACbg8AAuHqsVDaMQeY6CcRojME"]
 COOL_TIMER = 20
 ONLY_SCAN_IN_GRP = environ.get("ONLY_SCAN_IN_GRP", "True").lower() == "true"
-REACTIONS = ["❤️‍🔥", "⚡", "🔥"]
+REACTIONS = ["❤", "⚡",]
 
 class Config(object):
     API_ID = int(os.environ.get("API_ID", 0))
