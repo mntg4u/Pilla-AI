@@ -1,4 +1,5 @@
 from datetime import datetime
+import asyncio
 from pytz import timezone
 from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
@@ -6,10 +7,11 @@ from info import Config
 from aiohttp import web
 from route import web_server
 import pyrogram.utils
+import os
+import sys
 
 pyrogram.utils.MIN_CHAT_ID = -999999999999
 pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
-
 
 class Bot(Client):
 
@@ -36,21 +38,26 @@ class Bot(Client):
             await web.TCPSite(app, "0.0.0.0", 8080).start()     
         print(f"{me.first_name} Is Started.....✨️")
         for id in Config.ADMIN:
-            try: await self.send_message(id, f"**{me.first_name}  Is Started...**")                                
-            except: pass
+            try:
+                await self.send_message(id, f"**{me.first_name}  Is Started...**")                                
+            except:
+                pass
         
         if Config.LOG_CHANNEL:
             try:
                 curr = datetime.now(timezone("Asia/Kolkata"))
                 date = curr.strftime('%d %B, %Y')
                 time = curr.strftime('%I:%M:%S %p')
-                await self.send_message(Config.LOG_CHANNEL, f"**{me.mention} Is Restarted !!**\n\n📅 Date : `{date}`\n⏰ Time : `{time}`\n🌐 Timezone : `Asia/Kolkata`\n\n🉐 Version : `v{__version__} (Layer {layer})`</b>")                                
+                await self.send_message(Config.LOG_CHANNEL, f"**{me.mention} Is Restarted !!**\n\n📅 Date : `{date}`\n⏰ Time : `{time}`\n🌐 Timezone : `Asia/Kolkata`\n\n🆐 Version : `v{__version__} (Layer {layer})`")                                
             except:
-                print("Please Make This Is Admin In Your Log Channel")
+                print("Please Make This Bot Admin In Your Log Channel")
+        
+        asyncio.create_task(self.andi())
+    
+    async def andi(self):
+        while True:
+            await asyncio.sleep(86400) 
+            print("Restarting bot...")
+            os.execv(sys.executable, ['python'] + sys.argv)  
 
 Bot().run()
-
-
-
-
-
